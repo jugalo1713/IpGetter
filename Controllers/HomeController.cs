@@ -36,19 +36,32 @@ namespace IpGetter.Controllers
                 model.RemoteIpAddress = Get_RemoteIpAddress(Request);
             }
 
+            model.ProcessedIp = processedIp(Request);
+
+            return View(model);
+        }
+
+        private string? Get_HTTP_INCAP_CLIENT_IP(IServerVariablesFeature serverVariables) => serverVariables["HTTP_INCAP_CLIENT_IP"] ?? "";
+        private string? Get_HTTP_X_FORWARDED_FOR(IServerVariablesFeature serverVariables) => serverVariables["HTTP_X_FORWARDED_FOR"] ?? "";
+        private string? Get_HTTP_TRUE_CLIENT_IP(IServerVariablesFeature serverVariables) => serverVariables["HTTP_TRUE_CLIENT_IP"] ?? "";
+        private string? Get_INCAP_CLIENT_IP(HttpRequest request) => request.Headers["INCAP-CLIENT-IP"];
+        private string? Get_X_Forwarded_For(HttpRequest request) => request.Headers["X-Forwarded-For"];
+        private string? Get_True_Client_IP(HttpRequest request) => request.Headers["True-Client-IP"];
+        private string? Get_RemoteIpAddress(HttpRequest request) => request.HttpContext?.Connection?.RemoteIpAddress?.MapToIPv4().ToString() ?? "";
+
+        private string? processedIp (HttpRequest? request)
+        {
+            var serverVariables = request.HttpContext.Features.Get<IServerVariablesFeature>();
+
             if (serverVariables == null)
             {
                 return "";
             }
             string ip = serverVariables["HTTP_INCAP_CLIENT_IP"] ?? "";
 
-            ip = "217.33.150.98:51187";
-
-            
-
             if (string.IsNullOrEmpty(ip))
             {
-                ip = Request.Headers["INCAP-CLIENT-IP"];
+                ip = request.Headers["INCAP-CLIENT-IP"];
             }
 
             if (string.IsNullOrEmpty(ip))
@@ -58,7 +71,7 @@ namespace IpGetter.Controllers
 
             if (string.IsNullOrEmpty(ip))
             {
-                ip = Request.Headers["X-Forwarded-For"];
+                ip = request.Headers["X-Forwarded-For"];
             }
 
             if (string.IsNullOrEmpty(ip))
@@ -68,7 +81,7 @@ namespace IpGetter.Controllers
 
             if (string.IsNullOrEmpty(ip))
             {
-                ip = Request.Headers["True-Client-IP"];
+                ip = request.Headers["True-Client-IP"];
             }
 
             if (string.IsNullOrEmpty(ip))
@@ -78,7 +91,7 @@ namespace IpGetter.Controllers
 
             if (string.IsNullOrEmpty(ip))
             {
-                ip = Request.HttpContext?.Connection?.RemoteIpAddress?.MapToIPv4().ToString() ?? "";
+                ip = request.HttpContext?.Connection?.RemoteIpAddress?.MapToIPv4().ToString() ?? "";
             }
 
             if (!string.IsNullOrEmpty(ip) && ip.Contains(":"))
@@ -87,19 +100,9 @@ namespace IpGetter.Controllers
                 ip = ip.Substring(0, index);
             }
 
-            model.ProcessedIp = ip;
+            return ip;
 
-            return View(model);
+
         }
-
-        private string? Get_HTTP_INCAP_CLIENT_IP(IServerVariablesFeature serverVariables) => serverVariables["HTTP_INCAP_CLIENT_IP"] ?? "";
-        private string? Get_HTTP_X_FORWARDED_FOR(IServerVariablesFeature serverVariables) => serverVariables["HTTP_X_FORWARDED_FOR"] ?? "";
-        private string? Get_HTTP_TRUE_CLIENT_IP(IServerVariablesFeature serverVariables) => serverVariables["HTTP_TRUE_CLIENT_IP"] ?? "";
-
-        private string? Get_INCAP_CLIENT_IP(HttpRequest request) => request.Headers["INCAP-CLIENT-IP"];
-        private string? Get_X_Forwarded_For(HttpRequest request) => request.Headers["X-Forwarded-For"];
-        private string? Get_True_Client_IP(HttpRequest request) => request.Headers["True-Client-IP"];
-
-        private string? Get_RemoteIpAddress(HttpRequest request) => request.HttpContext?.Connection?.RemoteIpAddress?.MapToIPv4().ToString() ?? "";
     }
 }
