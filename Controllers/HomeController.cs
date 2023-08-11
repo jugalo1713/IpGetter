@@ -52,47 +52,46 @@ namespace IpGetter.Controllers
         private string? processedIp (HttpRequest? request)
         {
             var serverVariables = request.HttpContext.Features.Get<IServerVariablesFeature>();
+            string ip = "";
 
-            if (serverVariables == null)
+            if (serverVariables != null)
             {
-                return "";
-            }
-            string ip = serverVariables["HTTP_INCAP_CLIENT_IP"] ?? "";
+                ip = serverVariables["HTTP_INCAP_CLIENT_IP"] ?? "";
 
-            if (string.IsNullOrEmpty(ip))
+                if (string.IsNullOrEmpty(ip))
+                {
+                    ip = serverVariables["HTTP_X_FORWARDED_FOR"] ?? "";
+                }
+                if (string.IsNullOrEmpty(ip))
+                {
+                    ip = serverVariables["HTTP_TRUE_CLIENT_IP"] ?? "";
+                }
+                if (string.IsNullOrEmpty(ip))
+                {
+                    ip = serverVariables["REMOTE_ADDR"] ?? "";
+                }
+            }
+
+            if (string.IsNullOrEmpty(ip) && request.Headers != null)
             {
                 ip = request.Headers["INCAP-CLIENT-IP"];
+
+                if (string.IsNullOrEmpty(ip))
+                {
+                    ip = request.Headers["X-Forwarded-For"];
+                }
+
+                if (string.IsNullOrEmpty(ip))
+                {
+                    ip = request.Headers["True-Client-IP"];
+                }
             }
 
-            if (string.IsNullOrEmpty(ip))
-            {
-                ip = serverVariables["HTTP_X_FORWARDED_FOR"] ?? "";
-            }
-
-            if (string.IsNullOrEmpty(ip))
-            {
-                ip = request.Headers["X-Forwarded-For"];
-            }
-
-            if (string.IsNullOrEmpty(ip))
-            {
-                ip = serverVariables["HTTP_TRUE_CLIENT_IP"] ?? "";
-            }
-
-            if (string.IsNullOrEmpty(ip))
-            {
-                ip = request.Headers["True-Client-IP"];
-            }
-
-            if (string.IsNullOrEmpty(ip))
-            {
-                ip = serverVariables["REMOTE_ADDR"] ?? "";
-            }
-
-            if (string.IsNullOrEmpty(ip))
+            if (string.IsNullOrEmpty(ip) && request.HttpContext?.Connection?.RemoteIpAddress != null)
             {
                 ip = request.HttpContext?.Connection?.RemoteIpAddress?.MapToIPv4().ToString() ?? "";
             }
+
 
             if (!string.IsNullOrEmpty(ip) && ip.Contains(":"))
             {
@@ -101,8 +100,6 @@ namespace IpGetter.Controllers
             }
 
             return ip;
-
-
         }
     }
 }
