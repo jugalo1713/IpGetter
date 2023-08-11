@@ -1,6 +1,7 @@
 ﻿using IpGetter.Models;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using System.Diagnostics;
 
 namespace IpGetter.Controllers
@@ -16,26 +17,79 @@ namespace IpGetter.Controllers
 
         public IActionResult Index()
         {
-            var moodel = new IpModel();
+            var model = new IpModel();
 
             var serverVariables = Request.HttpContext.Features.Get<IServerVariablesFeature>();
 
             if(serverVariables != null)
             {
-                moodel.HTTP_INCAP_CLIENT_IP = Get_HTTP_INCAP_CLIENT_IP(serverVariables);
-                moodel.HTTP_X_FORWARDED_FOR = Get_HTTP_X_FORWARDED_FOR(serverVariables);
-                moodel.HTTP_TRUE_CLIENT_IP = Get_HTTP_TRUE_CLIENT_IP(serverVariables);
+                model.HTTP_INCAP_CLIENT_IP = Get_HTTP_INCAP_CLIENT_IP(serverVariables);
+                model.HTTP_X_FORWARDED_FOR = Get_HTTP_X_FORWARDED_FOR(serverVariables);
+                model.HTTP_TRUE_CLIENT_IP = Get_HTTP_TRUE_CLIENT_IP(serverVariables);
             }
 
             if(Request != null)
             {
-                moodel.INCAP_CLIENT_IP = Get_INCAP_CLIENT_IP(Request);
-                moodel.X_Forwarded_For = Get_X_Forwarded_For(Request);
-                moodel.True_Client_IP = Get_True_Client_IP(Request);
-                moodel.RemoteIpAddress = Get_RemoteIpAddress(Request);
+                model.INCAP_CLIENT_IP = Get_INCAP_CLIENT_IP(Request);
+                model.X_Forwarded_For = Get_X_Forwarded_For(Request);
+                model.True_Client_IP = Get_True_Client_IP(Request);
+                model.RemoteIpAddress = Get_RemoteIpAddress(Request);
             }
 
-            return View(moodel);
+            if (serverVariables == null)
+            {
+                return "";
+            }
+            string ip = serverVariables["HTTP_INCAP_CLIENT_IP"] ?? "";
+
+            ip = "217.33.150.98:51187";
+
+            
+
+            if (string.IsNullOrEmpty(ip))
+            {
+                ip = Request.Headers["INCAP-CLIENT-IP"];
+            }
+
+            if (string.IsNullOrEmpty(ip))
+            {
+                ip = serverVariables["HTTP_X_FORWARDED_FOR"] ?? "";
+            }
+
+            if (string.IsNullOrEmpty(ip))
+            {
+                ip = Request.Headers["X-Forwarded-For"];
+            }
+
+            if (string.IsNullOrEmpty(ip))
+            {
+                ip = serverVariables["HTTP_TRUE_CLIENT_IP"] ?? "";
+            }
+
+            if (string.IsNullOrEmpty(ip))
+            {
+                ip = Request.Headers["True-Client-IP"];
+            }
+
+            if (string.IsNullOrEmpty(ip))
+            {
+                ip = serverVariables["REMOTE_ADDR"] ?? "";
+            }
+
+            if (string.IsNullOrEmpty(ip))
+            {
+                ip = Request.HttpContext?.Connection?.RemoteIpAddress?.MapToIPv4().ToString() ?? "";
+            }
+
+            if (!string.IsNullOrEmpty(ip) && ip.Contains(":"))
+            {
+                var index = ip.IndexOf(':');
+                ip = ip.Substring(0, index);
+            }
+
+            model.ProcessedIp = ip;
+
+            return View(model);
         }
 
         private string? Get_HTTP_INCAP_CLIENT_IP(IServerVariablesFeature serverVariables) => serverVariables["HTTP_INCAP_CLIENT_IP"] ?? "";
