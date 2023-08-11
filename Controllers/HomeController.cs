@@ -36,8 +36,6 @@ namespace IpGetter.Controllers
                 model.RemoteIpAddress = Get_RemoteIpAddress(Request);
             }
 
-            model.ProcessedIp = processedIp(Request);
-
             return View(model);
         }
 
@@ -48,58 +46,5 @@ namespace IpGetter.Controllers
         private string? Get_X_Forwarded_For(HttpRequest request) => request.Headers["X-Forwarded-For"];
         private string? Get_True_Client_IP(HttpRequest request) => request.Headers["True-Client-IP"];
         private string? Get_RemoteIpAddress(HttpRequest request) => request.HttpContext?.Connection?.RemoteIpAddress?.MapToIPv4().ToString() ?? "";
-
-        private string? processedIp (HttpRequest? request)
-        {
-            var serverVariables = request.HttpContext.Features.Get<IServerVariablesFeature>();
-            string ip = "";
-
-            if (serverVariables != null)
-            {
-                ip = serverVariables["HTTP_INCAP_CLIENT_IP"] ?? "";
-
-                if (string.IsNullOrEmpty(ip))
-                {
-                    ip = serverVariables["HTTP_X_FORWARDED_FOR"] ?? "";
-                }
-                if (string.IsNullOrEmpty(ip))
-                {
-                    ip = serverVariables["HTTP_TRUE_CLIENT_IP"] ?? "";
-                }
-                if (string.IsNullOrEmpty(ip))
-                {
-                    ip = serverVariables["REMOTE_ADDR"] ?? "";
-                }
-            }
-
-            if (string.IsNullOrEmpty(ip) && request.Headers != null)
-            {
-                ip = request.Headers["INCAP-CLIENT-IP"];
-
-                if (string.IsNullOrEmpty(ip))
-                {
-                    ip = request.Headers["X-Forwarded-For"];
-                }
-
-                if (string.IsNullOrEmpty(ip))
-                {
-                    ip = request.Headers["True-Client-IP"];
-                }
-            }
-
-            if (string.IsNullOrEmpty(ip) && request.HttpContext?.Connection?.RemoteIpAddress != null)
-            {
-                ip = request.HttpContext?.Connection?.RemoteIpAddress?.MapToIPv4().ToString() ?? "";
-            }
-
-
-            if (!string.IsNullOrEmpty(ip) && ip.Contains(":"))
-            {
-                var index = ip.IndexOf(':');
-                ip = ip.Substring(0, index);
-            }
-
-            return ip;
-        }
     }
 }
