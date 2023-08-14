@@ -36,6 +36,8 @@ namespace IpGetter.Controllers
                 model.RemoteIpAddress = Get_RemoteIpAddress(Request);
             }
 
+            model.ProcessedIp = processedIp(serverVariables);
+
             return View(model);
         }
 
