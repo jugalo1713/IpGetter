@@ -9,5 +9,7 @@
         public string? HTTP_TRUE_CLIENT_IP { get; set; }
         public string? True_Client_IP { get; set; }
         public string? RemoteIpAddress { get; set; }
+        public string? ProcessedIp { get; set; }
+
     }
 }
