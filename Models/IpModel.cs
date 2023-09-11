@@ -10,6 +10,7 @@
         public string? True_Client_IP { get; set; }
         public string? RemoteIpAddress { get; set; }
         public string? ProcessedIp { get; set; }
+        public string? SecondWay { get; set; }
 
     }
 }

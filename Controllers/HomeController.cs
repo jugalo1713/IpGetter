@@ -1,8 +1,6 @@
 ﻿using IpGetter.Models;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using System.Diagnostics;
 
 namespace IpGetter.Controllers
 {
@@ -37,6 +35,7 @@ namespace IpGetter.Controllers
             }
 
             model.ProcessedIp = processedIp(serverVariables);
+            model.SecondWay = GetUserIPAddress2(serverVariables);
 
             return View(model);
         }
@@ -76,6 +75,33 @@ namespace IpGetter.Controllers
             {
                 var index = ip.IndexOf(':');
                 ip = ip[..index];
+            }
+
+            return ip;
+        }
+
+
+        public string GetUserIPAddress2(IServerVariablesFeature serverVariables)
+        {
+            var request = Request;
+            string? ip = "";
+
+            var headerKeys = new[] {"HTTP_INCAP_CLIENT_IP", "HTTP_X_FORWARDED_FOR",
+            "HTTP_TRUE_CLIENT_IP", "REMOTE_ADDR",
+            "INCAP-CLIENT-IP", "X-Forwarded-For", "True-Client-IP"};
+
+            foreach (var key in headerKeys)
+            {
+                ip = serverVariables[key];
+                if (!string.IsNullOrEmpty(ip)) break;
+
+                ip = request.Headers[key];
+                if (!string.IsNullOrEmpty(ip)) break;
+            }
+
+            if (string.IsNullOrEmpty(ip))
+            {
+                ip = request.HttpContext?.Connection?.RemoteIpAddress?.MapToIPv4().ToString();
             }
 
             return ip;
