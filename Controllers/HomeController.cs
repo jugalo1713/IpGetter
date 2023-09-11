@@ -71,11 +71,11 @@ namespace IpGetter.Controllers
                 ip = Request.HttpContext?.Connection?.RemoteIpAddress?.MapToIPv4().ToString() ?? "";
             }
 
-            if (!string.IsNullOrEmpty(ip) && ip.Contains(':'))
-            {
-                var index = ip.IndexOf(':');
-                ip = ip[..index];
-            }
+            //if (!string.IsNullOrEmpty(ip) && ip.Contains(':'))
+            //{
+            //    var index = ip.IndexOf(':');
+            //    ip = ip[..index];
+            //}
 
             return ip;
         }
